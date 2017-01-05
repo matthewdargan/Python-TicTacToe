@@ -40,11 +40,17 @@ def coordinateCheck(x, y):
 mouseX = 0
 mouseY = 0
 coordinates = '0'
+gameWinner = 0
 
 #gets mouse click and sets input to global variables: mouseX and mouseY
 def playerInput(event):
 
-    global mouseX, mouseY
+    global gameWinner
+
+    if (gameWinner != 0):
+        return
+
+    global mouseX, mouseY, clickError, turn
 
     mouseX, mouseY = event.x, event.y
 
@@ -57,11 +63,32 @@ def playerInput(event):
     #error handler that sees if oval clicked was previously owned
     legalMoveFlag = legalMoveCheck(coordinates)
 
+    #checks to see if move clicked was legal
     if legalMoveFlag == 0:
-        updateBoardOval(coordinates)
-        updateTurn()
 
-    gameLogic()
+        #draws legal clicked oval on board
+        updateBoardOval(coordinates)
+
+        #error handler for ending game message
+        if (gameWinner == 0):
+            updateTurn()
+
+        #checks for end of game
+        gameLogic()
+
+        #error hangler making sure players second move is actually player 1's move (DO NOT REMOVE!)
+        if turn == 1:
+            updateTurn()
+
+        #calls function to have computer place a move on the board
+        getComputerMove()
+
+        #checks for end of game
+        gameLogic()
+
+        #error hangler for ending game message
+        if (gameWinner == 0):
+            updateTurn()
 
 #sets root to canvas funtion
 root = Tk()
@@ -132,60 +159,72 @@ boardOvals[8] = oval(625, 625, 0)
 #draw shape on board based on user input
 def updateBoardOval(string):
 
-    global player
+    global player, playerMoves, turn
+
+    if turn == 1:
+        player = player + 1
 
     if string == '11':
         boardOvals[0].owner = player
         if boardOvals[0].owner == 1:
             drawCircle(boardOvals[0].x, boardOvals[0].y)
+            playerMoves[0] = 1
         elif boardOvals[0].owner == 2:
             drawNonReligiousCross(boardOvals[0].x, boardOvals[0].y)
     elif string == '21':
         boardOvals[1].owner = player
         if boardOvals[1].owner == 1:
             drawCircle(boardOvals[1].x, boardOvals[1].y)
+            playerMoves[1] = 1
         elif boardOvals[1].owner == 2:
             drawNonReligiousCross(boardOvals[1].x, boardOvals[1].y)
     elif string == '31':
         boardOvals[2].owner = player
         if boardOvals[2].owner == 1:
             drawCircle(boardOvals[2].x, boardOvals[2].y)
+            playerMoves[2] = 1
         elif boardOvals[2].owner == 2:
             drawNonReligiousCross(boardOvals[2].x, boardOvals[2].y)
     elif string == '12':
         boardOvals[3].owner = player
         if boardOvals[3].owner == 1:
             drawCircle(boardOvals[3].x, boardOvals[3].y)
+            playerMoves[3] = 1
         elif boardOvals[3].owner == 2:
             drawNonReligiousCross(boardOvals[3].x, boardOvals[3].y)
     elif string == '22':
         boardOvals[4].owner = player
         if boardOvals[4].owner == 1:
             drawCircle(boardOvals[4].x, boardOvals[4].y)
+            playerMoves[4] = 1
         elif boardOvals[4].owner == 2:
             drawNonReligiousCross(boardOvals[4].x, boardOvals[4].y)
     elif string == '32':
         boardOvals[5].owner = player
         if boardOvals[5].owner == 1:
             drawCircle(boardOvals[5].x, boardOvals[5].y)
+            playerMoves[5] = 1
         elif boardOvals[5].owner == 2:
             drawNonReligiousCross(boardOvals[5].x, boardOvals[5].y)
     elif string == '13':
         boardOvals[6].owner = player
         if boardOvals[6].owner == 1:
             drawCircle(boardOvals[6].x, boardOvals[6].y)
+            playerMoves[6] = 1
         elif boardOvals[6].owner == 2:
             drawNonReligiousCross(boardOvals[6].x, boardOvals[6].y)
     elif string == '23':
         boardOvals[7].owner = player
         if boardOvals[7].owner == 1:
             drawCircle(boardOvals[7].x, boardOvals[7].y)
+            playerMoves[7] = 1
         elif boardOvals[7].owner == 2:
             drawNonReligiousCross(boardOvals[7].x, boardOvals[7].y)
     else:
         boardOvals[8].owner = player
         if boardOvals[8].owner == 1:
             drawCircle(boardOvals[8].x, boardOvals[8].y)
+            playerMoves[8] = 1
         elif boardOvals[8].owner == 2:
             drawNonReligiousCross(boardOvals[8].x, boardOvals[8].y)
 
@@ -222,11 +261,11 @@ def legalMoveCheck(string):
 
 #global variable to keep track of turn
 turn = 0
-player = 0
+player = 1
+
 def updateTurn():
 
-    global turn
-    global player
+    global turn, player
 
     turn = turn + 1
 
@@ -243,7 +282,8 @@ def updateTurn():
         canvas_2.create_text(175, 100, fill = "blue", font = "Times 20 italic bold", text = "Player 1's turn!")
 
 def gameLogic():
-    gameWinner = 0
+
+    global gameWinner
 
     if (boardOvals[0].owner == boardOvals[1].owner and boardOvals[1].owner == boardOvals[2].owner) and boardOvals[0].owner != 0:
         gameWinner = boardOvals[0].owner
@@ -276,4 +316,240 @@ def gameLogic():
         canvas_2.create_text(175, 100, fill = "blue", font = "Times 20 italic bold", text = "Player 1 Wins!")
     elif gameWinner == 2:
         canvas_2.delete("all")
-        canvas_2.create_text(175, 100, fill = "blue", font = "Times 20 italic bold", text = "Player 2 Wins!")
+        canvas_2.create_text(175, 100, fill = "blue", font = "Times 20 italic bold", text = "Computer Wins!")
+
+playerMoves = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+#defensive ai for now
+def getComputerMove():
+
+    global coordinates, playerMoves, turn
+
+
+    if (turn == 2):
+        #reacts to players first move row one
+        if (playerMoves[0] + playerMoves[1] + playerMoves[2] == 1):
+            if (playerMoves[0] == 1 and boardOvals[1].owner == 0):
+                boardOvals[1].owner = 2
+                coordinates = '21'
+                updateBoardOval(coordinates)
+                return
+            if (playerMoves[1] == 1 and boardOvals[1].owner == 0):
+                boardOvals[2].owner = 2
+                coordinates = '31'
+                updateBoardOval(coordinates)
+                return
+            if (playerMoves[2] == 1 and boardOvals[1].owner == 0):
+                boardOvals[1].owner = 2
+                coordinates = '21'
+                updateBoardOval(coordinates)
+                return
+
+        #reacts to players first move row two
+        if (playerMoves[3] + playerMoves[4] + playerMoves[5] == 1):
+            if (playerMoves[3] == 1 and boardOvals[1].owner == 0):
+                boardOvals[4].owner = 2
+                coordinates = '22'
+                updateBoardOval(coordinates)
+                return
+            if (playerMoves[4] == 1 and boardOvals[1].owner == 0):
+                boardOvals[3].owner = 2
+                coordinates = '12'
+                updateBoardOval(coordinates)
+                return
+            if (playerMoves[5] == 1 and boardOvals[1].owner == 0):
+                boardOvals[4].owner = 2
+                coordinates = '22'
+                updateBoardOval(coordinates)
+                return
+
+        #reacts to players first move row three
+        if (playerMoves[6] + playerMoves[7] + playerMoves[8] == 1):
+            if (playerMoves[6] == 1 and boardOvals[1].owner == 0):
+                boardOvals[7].owner = 2
+                coordinates = '23'
+                updateBoardOval(coordinates)
+                return
+            if (playerMoves[7] == 1 and boardOvals[1].owner == 0):
+                boardOvals[6].owner = 2
+                coordinates = '13'
+                updateBoardOval(coordinates)
+                return
+            if (playerMoves[8] == 1 and boardOvals[1].owner == 0):
+                boardOvals[7].owner = 2
+                coordinates = '23'
+                updateBoardOval(coordinates)
+                return
+
+    #checks to block players moves diagonally top left to bottom right
+    if (playerMoves[0] + playerMoves[4] + playerMoves[8] >= 2):
+        if (playerMoves[0] != 1 and boardOvals[0].owner == 0):
+            boardOvals[0].owner = 2
+            coordinates = '11'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[4] != 1 and boardOvals[4].owner == 0):
+            boardOvals[4].owner = 2
+            coordinates = '22'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[8] != 1 and boardOvals[8].owner == 0):
+            boardOvals[8].owner = 2
+            coordinates = '33'
+            updateBoardOval(coordinates)
+            return
+
+    #checks to block players moves diagonally top right to bottom left
+    if (playerMoves[2] + playerMoves[4] + playerMoves[6] >= 2):
+        if (playerMoves[2] != 1 and boardOvals[2].owner == 0):
+            boardOvals[2].owner = 2
+            coordinates = '31'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[4] != 1 and boardOvals[4].owner == 0):
+            boardOvals[4].owner = 2
+            coordinates = '22'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[6] != 1 and boardOvals[6].owner == 0):
+            boardOvals[6].owner = 2
+            coordinates = '13'
+            updateBoardOval(coordinates)
+            return
+
+    #checks to block players moves horizontally top row
+    if (playerMoves[0] + playerMoves[1] + playerMoves[2] >= 2):
+        if (playerMoves[0] != 1 and boardOvals[0].owner == 0):
+            boardOvals[0].owner = 2
+            coordinates = '11'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[1] != 1 and boardOvals[1].owner == 0):
+            boardOvals[1].owner = 2
+            coordinates = '21'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[2] != 1 and boardOvals[2].owner == 0):
+            boardOvals[2].owner = 2
+            coordinates = '31'
+            updateBoardOval(coordinates)
+            return
+
+    #checks to block players moves horizontally middle row
+    if (playerMoves[3] + playerMoves[4] + playerMoves[5] >= 2):
+        if (playerMoves[3] != 1 and boardOvals[3].owner == 0):
+            boardOvals[3].owner = 2
+            coordinates = '21'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[4] != 1 and boardOvals[4].owner == 0):
+            boardOvals[4].owner = 2
+            coordinates = '22'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[5] != 1 and boardOvals[5].owner == 0):
+            boardOvals[5].owner = 2
+            coordinates = '32'
+            updateBoardOval(coordinates)
+            return
+
+    #checks to block players moves horizontally bottom row
+    if (playerMoves[6] + playerMoves[7] + playerMoves[8] >= 2):
+        if (playerMoves[6] != 1 and boardOvals[6].owner == 0):
+            boardOvals[6].owner = 2
+            coordinates = '13'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[7] != 1 and boardOvals[7].owner == 0):
+            boardOvals[7].owner = 2
+            coordinates = '23'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[8] != 1 and boardOvals[8].owner == 0):
+            boardOvals[8].owner = 2
+            coordinates = '33'
+            updateBoardOval(coordinates)
+            return
+
+   #checks to block players moves vertically first row
+    if (playerMoves[0] + playerMoves[3] + playerMoves[6] >= 2):
+        if (playerMoves[0] != 1 and boardOvals[0].owner == 0):
+            boardOvals[0].owner = 2
+            coordinates = '11'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[3] != 1 and boardOvals[3].owner == 0):
+            boardOvals[3].owner = 2
+            coordinates = '12'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[6] != 1 and boardOvals[6].owner == 0):
+            boardOvals[6].owner = 2
+            coordinates = '13'
+            updateBoardOval(coordinates)
+            return
+
+    #checks to block players moves vertically second row
+    if (playerMoves[1] + playerMoves[4] + playerMoves[7] >= 2):
+        if (playerMoves[1] != 1 and boardOvals[1].owner == 0):
+            boardOvals[1].owner = 2
+            coordinates = '21'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[4] != 1 and boardOvals[4].owner == 0):
+            boardOvals[4].owner = 2
+            coordinates = '22'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[7] != 1 and boardOvals[7].owner == 0):
+            boardOvals[7].owner = 2
+            coordinates = '23'
+            updateBoardOval(coordinates)
+            return
+
+    #checks to block players moves vertically last row
+    if (playerMoves[2] + playerMoves[5] + playerMoves[8] >= 2):
+        if (playerMoves[2] != 1 and boardOvals[2].owner == 0):
+            boardOvals[2].owner = 2
+            coordinates = '31'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[5] != 1 and boardOvals[5].owner == 0):
+            boardOvals[5].owner = 2
+            coordinates = '32'
+            updateBoardOval(coordinates)
+            return
+        if (playerMoves[8] != 1 and boardOvals[8].owner == 0):
+            boardOvals[8].owner = 2
+            coordinates = '33'
+            updateBoardOval(coordinates)
+            return
+
+    i = 0
+
+    #backup possibility incase other statements do not find an answer
+    for i in range(0, 8):
+        if (boardOvals[i].owner == 0):
+            boardOvals[i].owner = 2
+
+            if (i == 0):
+                coordinates = '11'
+            if (i == 1):
+                coordinates = '21'
+            if (i == 2):
+                coordinates = '31'
+            if (i == 3):
+                coordinates = '12'
+            if (i == 4):
+                coordinates = '22'
+            if (i == 5):
+                coordinates = '32'
+            if (i == 6):
+                coordinates = '13'
+            if (i == 7):
+                coordinates = '23'
+            if (i == 8):
+                coordinates = '33'
+
+            updateBoardOval(coordinates)
+            return
